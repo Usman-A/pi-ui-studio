@@ -78,7 +78,7 @@ jobs:
           set -euo pipefail
           npm run typecheck
           npm test
-          npm pack --dry-run > pack.txt
+          npm pack --dry-run > pack.txt 2>&1
           grep -q "THIRD_PARTY_NOTICES.md" pack.txt
           grep -q "vendor/manifest.json" pack.txt
 

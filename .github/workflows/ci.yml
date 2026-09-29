@@ -19,7 +19,8 @@ jobs:
       - name: Package smoke test
         run: |
           set -euo pipefail
-          npm pack --dry-run > pack.txt
+          # npm prints the file list on stderr, so capture both streams.
+          npm pack --dry-run > pack.txt 2>&1
           grep -q "LICENSE" pack.txt
           grep -q "THIRD_PARTY_NOTICES.md" pack.txt
           grep -q "src/index.ts" pack.txt
