@@ -1,0 +1,64 @@
+{
+  "name": "@usman-a/pi-ui-studio",
+  "version": "0.1.0",
+  "description": "UI Studio for OMP: a designer's eye and a UX auditor in one install. /studio orchestrates a vendored omp-designer engine and a vendored pi-ux engine against one shared DESIGN.md contract.",
+  "license": "MIT",
+  "type": "module",
+  "author": "usman-a",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/usman-a/pi-ui-studio.git"
+  },
+  "homepage": "https://github.com/usman-a/pi-ui-studio#readme",
+  "bugs": {
+    "url": "https://github.com/usman-a/pi-ui-studio/issues"
+  },
+  "keywords": [
+    "pi-package",
+    "omp",
+    "omp-package",
+    "pi",
+    "design",
+    "ux",
+    "ui",
+    "design-system",
+    "accessibility",
+    "anti-slop"
+  ],
+  "files": [
+    "src/",
+    "skills/",
+    "vendor/",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md",
+    "README.md"
+  ],
+  "omp": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ],
+    "skills": [
+      "./skills"
+    ]
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "sync": "node scripts/sync-upstream.mjs",
+    "sync:check": "node scripts/sync-upstream.mjs --check",
+    "test": "node --test tests/",
+    "typecheck": "tsc --noEmit",
+    "pack:check": "npm pack --dry-run",
+    "verify": "npm run typecheck && npm test && npm run pack:check"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}

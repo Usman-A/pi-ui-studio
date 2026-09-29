@@ -1,0 +1,57 @@
+{
+  "omp-designer": {
+    "package": "omp-designer",
+    "dir": "omp-designer",
+    "version": "4.1.0",
+    "role": "Designer engine — subjective visual direction",
+    "homepage": "https://github.com/LePro10/omp-designer",
+    "include": [
+      "skills/*.md",
+      "data/ui-ux-pro-max/**/*.csv",
+      "scripts/fix-ai-slop.mjs",
+      "scripts/analyze-layout.mjs",
+      "package.json"
+    ],
+    "exclude": [
+      {
+        "path": "skills/ui-ux-pro-max.md",
+        "reason": "Pointer to a separately managed skill (~/.omp/agent/managed-skills/ui-ux-pro-max-skill); its 1.9 MB CSV dataset is vendored under data/, the pointer itself is not a loadable skill."
+      },
+      {
+        "path": "extension/index.ts",
+        "reason": "Upstream OMP extension hardcodes ~/.omp paths, mutates mcp.json, and enforces a deny-by-default 12-skill gate that would fight Studio orchestration. Studio adopts the designer's content and validators instead."
+      },
+      {
+        "path": "extensions/designer.ts",
+        "reason": "Upstream Pi extension; superseded by Studio's host-aware orchestrator."
+      },
+      {
+        "path": "shared/skill-gate.mjs",
+        "reason": "Runtime gate for the upstream extension above; unused once that extension is not loaded."
+      }
+    ],
+    "notes": []
+  },
+  "pi-ux": {
+    "package": "@bacnh85/pi-ux",
+    "dir": "pi-ux",
+    "version": "0.6.6",
+    "role": "UX engine — deterministic validation",
+    "homepage": "https://github.com/bacnh85/pi-extensions/tree/main/pi-ux",
+    "include": [
+      "skills/*/SKILL.md",
+      "hooks/ux-audit.js",
+      "hooks/ux-config.js",
+      "hooks/ux-instructions.js",
+      "extensions/index.js",
+      "extensions/package.json",
+      "package.json",
+      "LICENSE"
+    ],
+    "exclude": [],
+    "notes": [
+      "extensions/index.js is vendored for its exported helpers only (resolveAuditCss, formatAuditResult). Studio never calls the upstream extension factory — Studio owns orchestration and mode state.",
+      "extensions/package.json is vendored because it carries the \"type\": \"module\" marker the upstream extension needs; without it Node re-parses the file on every load."
+    ]
+  }
+}
