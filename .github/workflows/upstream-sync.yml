@@ -1,0 +1,167 @@
+name: Upstream sync
+
+on:
+  schedule:
+    # Twice weekly, off the hour so the registry is not hammered.
+    - cron: "23 6 * * 1,4"
+  workflow_dispatch:
+    inputs:
+      update:
+        description: "Sync to the latest published versions"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  # Auto-merge policy for upstream bumps. Set to "false" to require review for
+  # patch and minor updates as well; major updates always require review.
+  AUTO_MERGE_PATCH_AND_MINOR: "true"
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    outputs:
+      drifted: ${{ steps.check.outputs.drifted }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: check
+        run: |
+          set +e
+          npm run sync:check
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo "drifted=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "drifted=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  sync:
+    needs: drift
+    if: github.event_name == 'schedule' || inputs.update == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+
+      - name: Detect upstream drift
+        id: plan
+        run: |
+          set +e
+          npm run sync:check
+          status=$?
+          set -e
+          echo "changed=$([ "$status" -eq 0 ] && echo false || echo true)" >> "$GITHUB_OUTPUT"
+
+      - name: Snapshot pins before syncing
+        if: steps.plan.outputs.changed == 'true'
+        run: |
+          git show origin/${{ github.event.repository.default_branch }}:scripts/upstreams.json > upstreams-before.json \
+            || cp scripts/upstreams.json upstreams-before.json
+
+      - name: Sync vendored sources
+        if: steps.plan.outputs.changed == 'true'
+        run: node scripts/sync-upstream.mjs --designer=latest --ux=latest
+
+      - name: Typecheck, contract tests, studio tests, package test
+        if: steps.plan.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          npm run typecheck
+          npm test
+          npm pack --dry-run > pack.txt 2>&1
+          grep -q "THIRD_PARTY_NOTICES.md" pack.txt
+          grep -q "vendor/manifest.json" pack.txt
+
+      - name: Decide bump policy
+        id: policy
+        if: steps.plan.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const before = JSON.parse(fs.readFileSync("upstreams-before.json", "utf8"));
+            const after = JSON.parse(fs.readFileSync("scripts/upstreams.json", "utf8"));
+            const bump = (a, b) => {
+              if (!a || !b) return "major";
+              const [am, ap] = a.split(".").map(Number);
+              const [bm, bp] = b.split(".").map(Number);
+              if (am !== bm) return "major";
+              if (ap !== bp) return "minor";
+              return "patch";
+            };
+            const kinds = Object.keys(after)
+              .filter((key) => before[key])
+              .map((key) => bump(before[key].version, after[key].version));
+            const worst = kinds.includes("major") ? "major" : kinds.includes("minor") ? "minor" : kinds.includes("patch") ? "patch" : "none";
+            fs.writeFileSync("bump.txt", worst);
+          '
+          bump=$(cat bump.txt)
+          auto_merge="false"
+          if [ "$bump" = "patch" ] || [ "$bump" = "minor" ]; then
+            if [ "${AUTO_MERGE_PATCH_AND_MINOR}" = "true" ]; then auto_merge="true"; fi
+          fi
+          echo "bump=$bump" >> "$GITHUB_OUTPUT"
+          echo "auto_merge=$auto_merge" >> "$GITHUB_OUTPUT"
+
+      - name: Summarise
+        if: steps.plan.outputs.changed == 'true'
+        run: |
+          {
+            echo "### Upstream update"
+            echo
+            echo "| package | before | after |"
+            echo "| --- | --- | --- |"
+            node --input-type=module -e '
+              import fs from "node:fs";
+              const before = JSON.parse(fs.readFileSync("upstreams-before.json", "utf8"));
+              const after = JSON.parse(fs.readFileSync("scripts/upstreams.json", "utf8"));
+              for (const [key, spec] of Object.entries(after)) {
+                const was = before[key]?.version ?? "(none)";
+                console.log(`| \`${spec.package}\` | ${was} | ${spec.version} |`);
+              }
+            '
+            echo
+            echo "| gate | result |"
+            echo "| --- | --- |"
+            echo "| Contract tests | PASS |"
+            echo "| Studio tests | PASS |"
+            echo "| Package test | PASS |"
+            echo
+            echo "Bump policy: **${{ steps.policy.outputs.bump }}** · auto-merge: **${{ steps.policy.outputs.auto_merge }}** (major always requires review)"
+          } > summary.md
+
+      - name: Open update PR
+        id: pr
+        if: steps.plan.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: chore/upstream-sync
+          commit-message: "chore(vendor): sync upstream engines"
+          title: "chore(vendor): sync omp-designer + pi-ux (${{ steps.policy.outputs.bump }})"
+          body-path: summary.md
+          labels: upstream-sync
+
+      - name: Enable auto-merge for patch/minor
+        if: steps.plan.outputs.changed == 'true' && steps.policy.outputs.auto_merge == 'true'
+        uses: peter-evans/enable-pull-request-automerge-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ steps.pr.outputs.pull-request-number }}
+
+  no-drift:
+    needs: drift
+    if: github.event_name == 'schedule' && needs.drift.outputs.drifted == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Upstream engines are current."

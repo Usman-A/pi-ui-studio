@@ -1,0 +1,44 @@
+{
+  "name": "@bacnh85/pi-ux",
+  "version": "0.6.6",
+  "description": "Anti-slop UI/UX design discipline for your Pi agent — anchors a lintable DESIGN.md, derives a design direction (mood, type voice, color mood, signature), runs deterministic slop-audit gates (APCA contrast + tokens + states + slop tells), works with text-only models, ships reference design-system presets.",
+  "keywords": [
+    "pi-package",
+    "pi",
+    "ux",
+    "ui",
+    "design",
+    "anti-slop",
+    "skills"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/bacnh85/pi-extensions/tree/main/pi-ux",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bacnh85/pi-extensions.git"
+  },
+  "files": [
+    "AGENTS.md",
+    "README.md",
+    "CHANGELOG.md",
+    "hooks/",
+    "skills/",
+    "extensions/index.js",
+    "extensions/package.json",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test extensions/test/*.test.js"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions/index.js"
+    ],
+    "skills": [
+      "./skills"
+    ]
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

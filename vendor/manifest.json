@@ -1,0 +1,349 @@
+{
+  "generatedBy": "scripts/sync-upstream.mjs",
+  "generatorVersion": 1,
+  "sources": {
+    "omp-designer": {
+      "package": "omp-designer",
+      "version": "4.1.0",
+      "role": "Designer engine — subjective visual direction",
+      "homepage": "https://github.com/LePro10/omp-designer",
+      "files": {
+        "data/ui-ux-pro-max/app-interface.csv": {
+          "sha256": "2a17ef810dab715ce1f339861817a8fbe3ccc38142b70517301e874803e838ac",
+          "bytes": 9743
+        },
+        "data/ui-ux-pro-max/charts.csv": {
+          "sha256": "ebb565308115f955791b0431797a89d9b3587c25d5babb9428d10712c4924817",
+          "bytes": 19391
+        },
+        "data/ui-ux-pro-max/colors.csv": {
+          "sha256": "69ee8c1147b269599d20ca418bdd6f32563a9aa2d962fb9a9b8dec66bf7b1ba4",
+          "bytes": 32432
+        },
+        "data/ui-ux-pro-max/design.csv": {
+          "sha256": "6f0ae42f16b3cbfa3f07050268387557859ff666e2651b1b82763f099d724b3f",
+          "bytes": 106144
+        },
+        "data/ui-ux-pro-max/draft.csv": {
+          "sha256": "e190c796b707858a5436dc4c27f9ee9bb6618014ca73f533e423abe5ce9e4d06",
+          "bytes": 106266
+        },
+        "data/ui-ux-pro-max/google-fonts.csv": {
+          "sha256": "2c03a3cd134d126bd9d6a7dc2a6360dc5272219ad6df3eb9315b031f806e1487",
+          "bytes": 745196
+        },
+        "data/ui-ux-pro-max/icons.csv": {
+          "sha256": "f376c29fb4df37b4bdb366a5aa70cb211ba3dd8b435390aaa03152a64b07d2e8",
+          "bytes": 20637
+        },
+        "data/ui-ux-pro-max/landing.csv": {
+          "sha256": "080cedbcd61ff8ec9520f33929baa76bee9589e783f83b2f8d824a466b6a46d7",
+          "bytes": 16720
+        },
+        "data/ui-ux-pro-max/products.csv": {
+          "sha256": "9fd9e776ba847cf44c1ea78f95fe5e33b2c56bb7e186e3cfff9c49bc7fcb691b",
+          "bytes": 58006
+        },
+        "data/ui-ux-pro-max/react-performance.csv": {
+          "sha256": "904c8afcda229629545912dde0e8ac37503757131f0169f80b016f1f58c4fd3f",
+          "bytes": 14822
+        },
+        "data/ui-ux-pro-max/stacks/angular.csv": {
+          "sha256": "dd7cc2a2b34cd8f0508bd05b067545e7a44f7724440c432d491d92a61a8fb6c1",
+          "bytes": 18269
+        },
+        "data/ui-ux-pro-max/stacks/astro.csv": {
+          "sha256": "ad18dae3ab6d148d37d144592df80dc1825b6c9e86d9d2d68fdda77434206a37",
+          "bytes": 11868
+        },
+        "data/ui-ux-pro-max/stacks/flutter.csv": {
+          "sha256": "fe36d404c799781e8ba6e9a8179b45799ed5126a545528550cd2eb0f2346e8c5",
+          "bytes": 10416
+        },
+        "data/ui-ux-pro-max/stacks/html-tailwind.csv": {
+          "sha256": "7aef38e75c53559470afcfa91580a9917ca8b7dbf8b92110389e23e93703ac52",
+          "bytes": 11305
+        },
+        "data/ui-ux-pro-max/stacks/jetpack-compose.csv": {
+          "sha256": "6c8fd4b0391c342c12b0af15610cd5becbeccaef0bbe8dcfc01d928c3195d93e",
+          "bytes": 8195
+        },
+        "data/ui-ux-pro-max/stacks/laravel.csv": {
+          "sha256": "50e11e60a64b30f329af25ae71f4b8bbdb43bafc1865451b74f9f540a88964d5",
+          "bytes": 18378
+        },
+        "data/ui-ux-pro-max/stacks/nextjs.csv": {
+          "sha256": "e828ccc04843742f52f545a068e8a9ab0d2b97c0e771f7e93bf0cef74da05554",
+          "bytes": 12493
+        },
+        "data/ui-ux-pro-max/stacks/nuxt-ui.csv": {
+          "sha256": "05d6e74501b2b6a636faed32450622759f49a5bcafad971f5f4e7eba0eb7be71",
+          "bytes": 14010
+        },
+        "data/ui-ux-pro-max/stacks/nuxtjs.csv": {
+          "sha256": "f7a3f2d9542856d00199f85c6c023b7c284cc698e2e6e12d61afce2edacb24d6",
+          "bytes": 16539
+        },
+        "data/ui-ux-pro-max/stacks/react-native.csv": {
+          "sha256": "a08ca77fcf6b6d9531982dce465366296013bfcf12d2938ac72ad57cf0c4f085",
+          "bytes": 10035
+        },
+        "data/ui-ux-pro-max/stacks/react.csv": {
+          "sha256": "e5624ab41d33427d88e41d07581ce4eca59b37b36ab72a6ad43a9c8e2d0a1c72",
+          "bytes": 12962
+        },
+        "data/ui-ux-pro-max/stacks/shadcn.csv": {
+          "sha256": "395c2e415ef6f48a474acccdc8eb2c7258a6ed751a5037ba171a2d8823e02ded",
+          "bytes": 15921
+        },
+        "data/ui-ux-pro-max/stacks/svelte.csv": {
+          "sha256": "71af52d64f266c88070b91dbbaa900c2f8074b6baae9f35eaea6ba9cec6fd803",
+          "bytes": 11009
+        },
+        "data/ui-ux-pro-max/stacks/swiftui.csv": {
+          "sha256": "c9c2d2510f8e66281a2514e8dd0125a6b653b9ef53a71281b5e7dfe003d5b569",
+          "bytes": 10821
+        },
+        "data/ui-ux-pro-max/stacks/threejs.csv": {
+          "sha256": "f1c05f8f269fc4784170c837f4ff43b50042f00bbd6ba7dbef2896081a052544",
+          "bytes": 44787
+        },
+        "data/ui-ux-pro-max/stacks/vue.csv": {
+          "sha256": "c2724915d3c11cd67263f25896cff721f787a0fdd8326002d31e9f5806dfd8f8",
+          "bytes": 11006
+        },
+        "data/ui-ux-pro-max/styles.csv": {
+          "sha256": "9b5089dcde8999333b36878252a255cc3bacbb2fe7b836c76cc7f7aa2abb643d",
+          "bytes": 142673
+        },
+        "data/ui-ux-pro-max/typography.csv": {
+          "sha256": "dbea262a54e3bfa2e6c3b15989a365d5ef4c43349316aff46635e82ca825adce",
+          "bytes": 49667
+        },
+        "data/ui-ux-pro-max/ui-reasoning.csv": {
+          "sha256": "41976082ecae1100da937c949215dc6694393e03f3c2a7444dd92a9edb43cb11",
+          "bytes": 53070
+        },
+        "data/ui-ux-pro-max/ux-guidelines.csv": {
+          "sha256": "1870ee048f2a2bdd60709f8f7adf7f3b6dcad560bc005c8b2915a8ac8639820d",
+          "bytes": 18766
+        },
+        "extension/index.ts": {
+          "sha256": "b4c7a25f88e6868bf6e2fe22b3bf02abf8eaff0fabb69fa1f2d47d76068bc567",
+          "bytes": 37791
+        },
+        "package.json": {
+          "sha256": "e9378ecbad7e99caba0a55bca3c273d12912137fcde1c85d5d080ad5d71a8431",
+          "bytes": 1813
+        },
+        "scripts/analyze-layout.mjs": {
+          "sha256": "a89f84860ce95eca76cd90f214090491033a19b2d7a6c6327a47a35435bb2907",
+          "bytes": 13546
+        },
+        "scripts/fix-ai-slop.mjs": {
+          "sha256": "8df2f961275152d6bdb0cacf6b8f8223cecb5ba97dd90e7e91614032bf8bf401",
+          "bytes": 15701
+        },
+        "shared/skill-gate.mjs": {
+          "sha256": "c8460b435d03d898db00f13c36903df691dbb40b96b25436348ef3d74d55556c",
+          "bytes": 30860
+        },
+        "skills/ai-slop.md": {
+          "sha256": "773e6a205fcbe32a661db8677722aacadc5e6888ca4552c97d01b8961a52232c",
+          "bytes": 25917
+        },
+        "skills/animate.md": {
+          "sha256": "07e3ab0fb7bb1e9a2f0b1f546fdc77c3848aea0a2748854ab4833214a445dbc6",
+          "bytes": 7179
+        },
+        "skills/copywriting.md": {
+          "sha256": "b5011a8a472967ece3ac10ce345c9337c3e84cb9c5ed75cd5c3c330251883025",
+          "bytes": 5251
+        },
+        "skills/design-md.md": {
+          "sha256": "c8bb1e73f7040f1fd21ae4881a779c728d35d0584ffffe41c268b46b485db375",
+          "bytes": 6607
+        },
+        "skills/designer-master.md": {
+          "sha256": "a15bfcce493cac12a1c889e491f68a82fea3f8045b88244d54bfa8ff270c8288",
+          "bytes": 12944
+        },
+        "skills/product-md.md": {
+          "sha256": "335e3cd2712ab2e792347539de73e637a7498ba361205f5344dd472e9fab8e51",
+          "bytes": 3192
+        },
+        "skills/reference-study.md": {
+          "sha256": "5fe858d4d25c4fc7bb0083dec97f9bdec9a8ee42efe503248f22c064140e20c2",
+          "bytes": 3739
+        },
+        "skills/review-skill.md": {
+          "sha256": "0a68bf3c5514a68192e4bbde7f0efb68e05ddf603491e7b8b12a394773a4e315",
+          "bytes": 7723
+        },
+        "skills/scroll-choreography.md": {
+          "sha256": "2e3a0ae347375a01b891e089328beb8c7cd6cb9eabd56c27bc4de9a5178681d4",
+          "bytes": 4957
+        },
+        "skills/taste-skill.md": {
+          "sha256": "07baf33131589274c510cf0f9bbd96bea854693d730aa815b00fc221a9e89073",
+          "bytes": 38866
+        },
+        "skills/visual-critique.md": {
+          "sha256": "ad0a04620bb4dacee155e68046e731586e1fbf95acc70ef4aea90d6e2d4dcc92",
+          "bytes": 8230
+        }
+      },
+      "excluded": [
+        {
+          "path": "skills/ui-ux-pro-max.md",
+          "reason": "Pointer to a separately managed skill (~/.omp/agent/managed-skills/ui-ux-pro-max-skill); its 1.9 MB CSV dataset is vendored under data/, the pointer itself is not a loadable skill."
+        },
+        {
+          "path": "extensions/designer.ts",
+          "reason": "Upstream Pi entry point; Studio drives the OMP extension and stays the Pi target's first-class surface, so only one upstream factory is loaded."
+        }
+      ],
+      "notes": [
+        "extension/index.ts is loaded through the Studio policy adapter (src/adapters/designer-engine.ts): a HOME shim resolves its hardcoded ~/.omp paths, Studio materialises the managed-skills and validator paths it expects, and a proxied ExtensionAPI lets Studio decide whether to honour upstream prompt injection, the 12-skill gate, and session-stop enforcement."
+      ]
+    },
+    "pi-ux": {
+      "package": "@bacnh85/pi-ux",
+      "version": "0.6.6",
+      "role": "UX engine — deterministic validation",
+      "homepage": "https://github.com/bacnh85/pi-extensions/tree/main/pi-ux",
+      "files": {
+        "LICENSE": {
+          "sha256": "ab508615b36805df2bdbd2632087cf9d5802015b3b17f16b8a55b14af08c1744",
+          "bytes": 1064
+        },
+        "extensions/index.js": {
+          "sha256": "59c74f81e90f442f68b790a8f42c1b01d0620270fc80b8b0313665549e2d2249",
+          "bytes": 13940
+        },
+        "extensions/package.json": {
+          "sha256": "3ca9d4afd21425087cf31893b8f9f63c81b0b8408db5e343ca76e5f8aa26ab9a",
+          "bytes": 23
+        },
+        "hooks/ux-audit.js": {
+          "sha256": "d38928a84ce3ddc6fdc6f4ced3a07eb838f5a6514a65cccc49036622100efa43",
+          "bytes": 23795
+        },
+        "hooks/ux-config.js": {
+          "sha256": "22ddcec7442204c9657503d23b9b538f66d06ff762a5e5a2504b86ad789f107c",
+          "bytes": 2787
+        },
+        "hooks/ux-instructions.js": {
+          "sha256": "e61c5b3db7d22949ecd8d72e2a10a7deccc8369322c7d5bd8d6a0faad981875b",
+          "bytes": 2042
+        },
+        "package.json": {
+          "sha256": "1d8ee3805d8fac085409586d2ed5e792ec61ccc98d3d7ece0b247ab81d21f676",
+          "bytes": 1097
+        },
+        "skills/ux-capture/SKILL.md": {
+          "sha256": "53e33cf3a7de03323ca2074ebc5c900cf63fc30595d93439f5417a91d4d51d16",
+          "bytes": 11558
+        },
+        "skills/ux-design/SKILL.md": {
+          "sha256": "f689b087f6fdf028f3082712762a7c74e295cba088239f25bc2c04df508c7c23",
+          "bytes": 24144
+        },
+        "skills/ux-presets/SKILL.md": {
+          "sha256": "3cfd4b482429e84821b05f364e844093deabbd47a4119cd5803d970ce25f0bbf",
+          "bytes": 20491
+        },
+        "skills/ux-routing/SKILL.md": {
+          "sha256": "4f37a28b186dec8990f9049f05f33dae5dafc2269e45ea266c5826576bae0631",
+          "bytes": 3299
+        }
+      },
+      "excluded": [],
+      "notes": [
+        "extensions/index.js is vendored for its exported helpers (resolveAuditCss, formatAuditResult) and its audit kernel; Studio never calls the upstream pi-ux extension factory, because Studio owns orchestration and mode state.",
+        "extensions/package.json is vendored because it carries the \"type\": \"module\" marker the upstream extension needs; without it Node re-parses the file on every load."
+      ]
+    }
+  },
+  "generatedSkills": {
+    "ai-slop": {
+      "emitted": true,
+      "upstream": "omp-designer@4.1.0",
+      "transforms": []
+    },
+    "animate": {
+      "emitted": true,
+      "upstream": "omp-designer@4.1.0",
+      "transforms": []
+    },
+    "copywriting": {
+      "emitted": true,
+      "upstream": "omp-designer@4.1.0",
+      "transforms": []
+    },
+    "design-md": {
+      "emitted": true,
+      "upstream": "omp-designer@4.1.0",
+      "transforms": [
+        "design-md-single-contract"
+      ]
+    },
+    "designer-master": {
+      "emitted": true,
+      "upstream": "omp-designer@4.1.0",
+      "transforms": []
+    },
+    "product-md": {
+      "emitted": true,
+      "upstream": "omp-designer@4.1.0",
+      "transforms": []
+    },
+    "reference-study": {
+      "emitted": true,
+      "upstream": "omp-designer@4.1.0",
+      "transforms": []
+    },
+    "review-skill": {
+      "emitted": true,
+      "upstream": "omp-designer@4.1.0",
+      "transforms": []
+    },
+    "scroll-choreography": {
+      "emitted": true,
+      "upstream": "omp-designer@4.1.0",
+      "transforms": []
+    },
+    "taste-skill": {
+      "emitted": true,
+      "upstream": "omp-designer@4.1.0",
+      "transforms": []
+    },
+    "visual-critique": {
+      "emitted": true,
+      "upstream": "omp-designer@4.1.0",
+      "transforms": []
+    },
+    "ux-capture": {
+      "emitted": true,
+      "upstream": "@bacnh85/pi-ux@0.6.6",
+      "transforms": []
+    },
+    "ux-design": {
+      "emitted": true,
+      "upstream": "@bacnh85/pi-ux@0.6.6",
+      "transforms": [
+        "ux-design-single-contract"
+      ]
+    },
+    "ux-presets": {
+      "emitted": true,
+      "upstream": "@bacnh85/pi-ux@0.6.6",
+      "transforms": []
+    },
+    "ux-routing": {
+      "emitted": true,
+      "upstream": "@bacnh85/pi-ux@0.6.6",
+      "transforms": []
+    }
+  }
+}

@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run typecheck
+      - run: npm test
+      - name: Package smoke test
+        run: |
+          set -euo pipefail
+          # npm prints the file list on stderr, so capture both streams.
+          npm pack --dry-run > pack.txt 2>&1
+          grep -q "LICENSE" pack.txt
+          grep -q "THIRD_PARTY_NOTICES.md" pack.txt
+          grep -q "src/index.ts" pack.txt
+          grep -q "vendor/manifest.json" pack.txt
+          grep -q "skills/studio-orchestrator/SKILL.md" pack.txt
+      - name: Licences and vendor metadata
+        run: node --test tests/contract.test.mjs

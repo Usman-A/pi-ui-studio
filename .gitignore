@@ -1,4 +1,7 @@
 node_modules/
 *.tgz
+# Studio has no runtime dependencies; lockfiles are not part of the release.
+bun.lock
+package-lock.json
 .DS_Store
 .omp/
