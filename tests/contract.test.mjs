@@ -70,17 +70,38 @@ test("designer skills are exposed with loadable frontmatter", () => {
 test("ux skills are exposed with loadable frontmatter", () => {
   for (const name of REQUIRED_UX_SKILLS) {
     const doc = skillDoc(name);
-    assert.match(doc, new RegExp(`\\bname: ${name}\\b`), `${name} frontmatter name mismatch`);
+    assert.match(doc, new RegExp(`\\bname: ["']?${name}["']?\\b`), `${name} frontmatter name mismatch`);
     assert.match(doc, /\bdescription:/, `${name} has no description`);
   }
 });
 
-test("the single DESIGN.md contract transform is applied", () => {
-  const doc = skillDoc("design-md");
-  assert.ok(!doc.includes("local://DESIGN.md"), "design-md still points at the agent artifact namespace");
-  assert.ok(!doc.includes("picsum.photos"), "design-md still recommends a stock-photo CDN");
-  assert.match(doc, /Studio: one design contract/);
-  assert.match(doc, /at the project root/);
+test("both engines are pointed at one DESIGN.md contract", async () => {
+  const designer = skillDoc("design-md");
+  const ux = skillDoc("ux-design");
+
+  assert.ok(!designer.includes("local://DESIGN.md"), "design-md still writes to the artifact namespace");
+  for (const doc of [designer, ux]) {
+    assert.match(doc, /skill:\/\/studio-orchestrator/, "an engine skill does not defer to Studio's contract");
+  }
+  assert.ok(!designer.includes("picsum.photos"), "design-md still recommends a stock-photo CDN");
+  assert.match(designer, /Studio: one design contract/);
+  assert.match(ux, /Studio: the same DESIGN.md/);
+
+  const { REQUIRED_TOKEN_KEYS, REQUIRED_SECTIONS } = await import("../src/contract.ts");
+  for (const key of REQUIRED_TOKEN_KEYS) {
+    assert.ok(designer.includes(key), `design-md never mentions the ${key} token key`);
+    assert.ok(ux.includes(key), `ux-design never mentions the ${key} token key`);
+  }
+  for (const section of REQUIRED_SECTIONS) {
+    assert.ok(designer.includes(`## ${section}`), `design-md teaches no canonical "## ${section}" section`);
+  }
+});
+
+test("the Studio skill documents the schema the audit enforces", async () => {
+  const { REQUIRED_TOKEN_KEYS, REQUIRED_SECTIONS } = await import("../src/contract.ts");
+  const skill = skillDoc("studio-orchestrator");
+  for (const key of REQUIRED_TOKEN_KEYS) assert.match(skill, new RegExp(`\\b${key}:`), `skill omits ${key}`);
+  for (const section of REQUIRED_SECTIONS) assert.ok(skill.includes(`## ${section}`), `skill omits "## ${section}"`);
 });
 
 test("the ux audit kernel still exposes the gates Studio depends on", async () => {
@@ -127,5 +148,9 @@ test("the ui-ux-pro-max dataset is vendored but its pointer skill is not", () =>
     manifest.sources["omp-designer"].excluded.some((entry) => entry.path === "skills/ui-ux-pro-max.md"),
     "the unmanaged ui-ux-pro-max pointer must stay excluded",
   );
-  assert.ok(!fs.existsSync(path.join(SKILLS_DIR, "ui-ux-pro-max")), "excluded pointer must not become a skill");
+  // The upstream pointer stays excluded; Studio ships its own dataset skill so
+  // the designer engine's skill gate can actually be satisfied.
+  const skill = path.join(SKILLS_DIR, "ui-ux-pro-max", "SKILL.md");
+  assert.ok(fs.existsSync(skill), "Studio must ship its own ui-ux-pro-max dataset skill");
+  assert.match(fs.readFileSync(skill, "utf8"), /colors\.csv/);
 });

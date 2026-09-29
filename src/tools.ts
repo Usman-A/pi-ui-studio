@@ -129,16 +129,26 @@ export function registerStudioCheck(pi: ExtensionAPI, getRuntime: () => StudioRu
       }
 
       const contract = designer.contract;
-      if (contract.exists) {
+      if (contract.exists && contract.schema) {
+        const schema = contract.schema;
         sections.push(
-          `DESIGN.md: ${path.basename(contract.path)} (${contract.hexCount} hex tokens${contract.hasFrontmatter ? ", frontmatter" : ", no frontmatter"})`,
+          `DESIGN.md: ${path.basename(contract.path)} (${schema.hexCount} hex tokens, frontmatter ${schema.hasFrontmatter ? "present" : "missing"})`,
         );
-        if (strict && !contract.hasFrontmatter) {
-          failures.push("DESIGN.md has no token frontmatter — ux_audit and analyze-layout cannot read the system");
+        if (strict && !schema.ok) {
+          if (!schema.hasFrontmatter) {
+            failures.push("DESIGN.md has no token frontmatter — ux_audit and analyze-layout cannot read the system");
+          }
+          if (schema.missingKeys.length > 0) {
+            failures.push(`DESIGN.md frontmatter is missing: ${schema.missingKeys.join(", ")}`);
+          }
+          if (schema.missingSections.length > 0) {
+            failures.push(`DESIGN.md is missing sections: ${schema.missingSections.join(", ")}`);
+          }
+        } else if (!schema.hasFrontmatter) {
+          sections.push("  advisory: add the token frontmatter before the audit phase");
         }
       } else {
-        const line = `DESIGN.md: MISSING (${contract.path})`;
-        sections.push(line);
+        sections.push(`DESIGN.md: MISSING (${contract.path})`);
         if (strict) failures.push("DESIGN.md is missing — the shared design contract must exist before audit");
       }
 

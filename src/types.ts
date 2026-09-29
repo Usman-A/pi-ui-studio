@@ -26,6 +26,8 @@ export interface StudioContext {
   sessionManager?: SessionManagerLike;
   hasUI?: boolean;
   agent?: { kind?: string };
+  /** Legacy surface the vendored designer engine writes its reports through. */
+  editor?: { setText?: (text: string) => void };
 }
 
 export interface ToolResult {

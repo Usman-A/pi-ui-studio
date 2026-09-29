@@ -27,8 +27,11 @@ const MARKER_START = "<!-- vendor:versions:start -->";
 const MARKER_END = "<!-- vendor:versions:end -->";
 
 /** Skill directories authored by Studio; the sync must never touch them. */
-const AUTHORED_SKILLS = new Set(["studio-orchestrator"]);
 
+const AUTHORED_SKILLS = new Set(["studio-orchestrator", "ui-ux-pro-max"]);
+
+/** pi-ux skills that carry a documented transform (see scripts/transforms/). */
+const TRANSFORMED_UX_SKILLS = new Set(["ux-design"]);
 const argv = process.argv.slice(2);
 const flags = new Map(
   argv
@@ -175,8 +178,20 @@ function generateSkills(sources) {
     const source = path.join(uxDir, entry.name, "SKILL.md");
     if (!fs.existsSync(source)) continue;
     const raw = fs.readFileSync(source, "utf8");
-    emitSkill(entry.name, raw, true);
-    generated[entry.name] = { emitted: true, upstream: `@bacnh85/pi-ux@${sources.piUx.resolved}`, transforms: [] };
+    // pi-ux ships directory skills that are already valid; only the ones with
+    // a documented transform are re-rendered.
+    if (!TRANSFORMED_UX_SKILLS.has(entry.name)) {
+      emitSkill(entry.name, raw, true);
+      generated[entry.name] = { emitted: true, upstream: `@bacnh85/pi-ux@${sources.piUx.resolved}`, transforms: [] };
+      continue;
+    }
+    const document = buildSkillDocument(entry.name, raw);
+    emitSkill(entry.name, document.content);
+    generated[entry.name] = {
+      emitted: true,
+      upstream: `@bacnh85/pi-ux@${sources.piUx.resolved}`,
+      transforms: document.transforms,
+    };
   }
 
   return generated;

@@ -64,6 +64,7 @@ export function studioOnText(profileId: string): string {
     "",
     "Phases: /studio explore · build · review · audit",
     "Modes:   /studio mode balanced | design-first | ux-first",
+    "Engine:  /studio designer studio | upstream | off",
     "Status:  /studio status   Doctor: /studio doctor   Pause: /studio off",
   ].join("\n");
 }
@@ -78,6 +79,7 @@ export function usageText(): string {
     "  /studio review               render, screenshot, critique, bounded repair",
     "  /studio audit                strict deterministic gate — blocking",
     "  /studio mode <profile>       balanced | design-first | ux-first",
+    "  /studio designer <mode>      off | studio | upstream — how much the designer engine owns",
     "  /studio status               current profile, phase and gate",
     "  /studio doctor               vendor integrity, engines, DESIGN.md",
     "  /studio off                  pause Studio for this project",

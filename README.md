@@ -45,14 +45,28 @@ PROVE       /studio audit      strict deterministic gate — blocking
 /studio mode design-first
 /studio mode ux-first
 
+/studio designer <mode>  how much of the designer engine Studio hands back:
+                         off | studio (default) | upstream
+
 /studio status          current profile, phase, gate and DESIGN.md
 /studio doctor          vendor integrity, engines, DESIGN.md
 /studio off             pause Studio for this project
 ```
 
-Power users keep the upstream names: `/designer` shows the designer engine's
-tuning, `/ux off|lite|strict` overrides the UX level. Both route to Studio
-state — there is no second settings system.
+The designer engine itself is **live, not just vendored**: its `/designer`,
+`/designer-doctor` and `/designer-reset` commands are registered through Studio,
+and its skills, validators and doctor run in every mode. `/studio designer`
+only decides how much authority the engine keeps:
+
+| Mode | Engine commands & validators | Upstream prompt injection | 12-skill gate | Session-stop enforcement |
+| --- | --- | --- | --- | --- |
+| `studio` (default) | yes | no — Studio composes the prompt | no — Studio owns blocking | no — Studio's audit gate |
+| `upstream` | yes | yes | yes (deny-by-default) | yes |
+| `off` | no | no | no | no |
+
+Power users keep the upstream names: `/designer` toggles the engine,
+`/designer-doctor` reports its health, `/ux off|lite|strict` sets the UX level.
+All of them route to Studio state — there is no second settings system.
 
 ## Profiles
 
@@ -73,15 +87,36 @@ Phases are separate from profiles. `/studio mode design-first` then
 ## DESIGN.md
 
 One file, at the project root, written by the Designer and validated by the UX
-engine:
+engine. Both upstream projects defined this file separately; Studio consolidates
+them on a single schema and both engine skills are transformed to point at it.
 
-1. User instructions always win.
-2. Product and functional requirements beat aesthetics.
-3. Once established, `DESIGN.md` is the source of truth.
-4. The Designer owns subjective visual direction.
-5. The UX engine owns deterministic validation.
-6. Accessibility failures get fixed, not aesthetically overridden.
-7. The UX engine never redesigns; the Designer never waves away a failing gate.
+```markdown
+---
+colors:      # exact hex or oklch values, plus contrast pairs
+typography:  # font roles with size, weight, leading, tracking
+rounded:     # one radius scale
+spacing:     # one spacing scale
+components:  # the component inventory this system serves
+---
+
+# <Product> — Design System
+
+## Overview      # intent, audience, anti-patterns
+## Colors        # token table, light + dark, with contrast pairs
+## Typography    # scale, roles, measure
+## Layout        # grid, breakpoints, container, spacing rhythm
+## Elevation     # named levels only
+## Components    # how each component type looks and behaves
+```
+
+Those five frontmatter keys and six sections are the contract; `/studio audit`
+fails without them. Extra sections — Motion, Spacing, Radius, Grid, Image
+Style, Accessibility — are welcome.
+
+Order of authority: user instructions, then product/function requirements,
+then `DESIGN.md`, then local taste. Accessibility failures get fixed, not
+overridden. The UX engine never redesigns; the Designer never waves away a
+failing gate.
 
 ## Tools
 
@@ -101,8 +136,26 @@ scripts/sync-upstream.mjs  the only writer of vendor/ and generated skills
 tests/                   upstream contract tests + Studio behaviour tests
 ```
 
+Two files carry the integration weight: `src/contract.ts` is the single
+DESIGN.md schema (enforced by `studio_check`, documented by the Studio skill),
+and `src/adapters/designer-engine.ts` loads the upstream extension with path
+shims and a policy proxy.
+
 `vendor/` and the vendored skill directories are generated. Never edit them by
 hand — edit `scripts/upstreams.json` or a transform and re-run `npm run sync`.
+
+## Platforms
+
+macOS, Linux and Windows are supported. Two details make that true:
+
+- **Runtime files are copied, never symlinked.** NTFS symlinks need Developer
+  Mode or an elevated shell, so the managed-skills and validator files the
+  designer engine expects are copied into the agent directory.
+- **The path shim redirects `HOME` *and* `USERPROFILE`.** `os.homedir()` reads
+  `HOME` on macOS and Linux but `USERPROFILE` on Windows; the shim sets both
+  while the upstream module is imported.
+
+WSL is the smoothest Windows path, but native Windows works.
 
 ## Updating upstream
 

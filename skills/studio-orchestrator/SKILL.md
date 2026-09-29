@@ -25,13 +25,46 @@ regenerate it wholesale to silence a check.
 4. The UX engine never redesigns. Report drift; the Designer decides.
 5. Reuse existing components and tokens before adding anything new.
 
+## DESIGN.md — the one contract
+
+One file at the project root, written by the Designer, validated by the UX
+engine, checked by `studio_check`. Never fork it, never regenerate it wholesale
+to silence a check, never write a second copy to `local://`.
+
+```markdown
+---
+colors:      # exact hex or oklch values, plus contrast pairs
+typography:  # font roles with size, weight, leading, tracking
+rounded:     # one radius scale
+spacing:     # one spacing scale
+components:  # the component inventory this system serves
+---
+
+# <Product> — Design System
+
+## Overview      # intent, audience, anti-patterns
+## Colors        # token table, light + dark, with contrast pairs
+## Typography    # scale, roles, measure
+## Layout        # grid, breakpoints, container, spacing rhythm
+## Elevation     # named levels only
+## Components    # how each component type looks and behaves
+```
+
+Extra sections — Motion, Spacing, Radius, Grid, Image Style, Accessibility —
+are welcome. Those six and those five frontmatter keys are the contract:
+`/studio audit` fails without them.
+
+Order of authority: user instructions, then product/function requirements,
+then `DESIGN.md`, then local taste. Accessibility failures get fixed, not
+overridden. The UX engine never redesigns; the Designer never waves away a
+failing gate.
+
 ## Phase: explore
 
 - Designer leads. Purpose: concept, hierarchy, layout idea, visual identity, type, references, motion and interaction concepts.
-- Read `skill://designer-master`, `skill://taste-skill`, `skill://reference-study`, `skill://design-md` as needed.
-- Use `vendor/omp-designer/data/ui-ux-pro-max/colors.csv` and `typography.csv` when picking a palette or pairing — pick a row, keep the exact values.
+- Read `skill://designer-master`, `skill://taste-skill`, `skill://reference-study`, `skill://design-md`, and `skill://ui-ux-pro-max` for palettes and pairings as needed.
 - Pi UX is quiet here. Do not tune a concept for audit scores.
-- Output: a direction, and a drafted `DESIGN.md` once there is something real to pin down.
+- Output: a direction, plus a `DESIGN.md` in the canonical schema once there is something real to pin down.
 
 ## Phase: build
 

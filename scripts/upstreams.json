@@ -10,6 +10,8 @@
       "data/ui-ux-pro-max/**/*.csv",
       "scripts/fix-ai-slop.mjs",
       "scripts/analyze-layout.mjs",
+      "extension/index.ts",
+      "shared/skill-gate.mjs",
       "package.json"
     ],
     "exclude": [
@@ -18,19 +20,13 @@
         "reason": "Pointer to a separately managed skill (~/.omp/agent/managed-skills/ui-ux-pro-max-skill); its 1.9 MB CSV dataset is vendored under data/, the pointer itself is not a loadable skill."
       },
       {
-        "path": "extension/index.ts",
-        "reason": "Upstream OMP extension hardcodes ~/.omp paths, mutates mcp.json, and enforces a deny-by-default 12-skill gate that would fight Studio orchestration. Studio adopts the designer's content and validators instead."
-      },
-      {
         "path": "extensions/designer.ts",
-        "reason": "Upstream Pi extension; superseded by Studio's host-aware orchestrator."
-      },
-      {
-        "path": "shared/skill-gate.mjs",
-        "reason": "Runtime gate for the upstream extension above; unused once that extension is not loaded."
+        "reason": "Upstream Pi entry point; Studio drives the OMP extension and stays the Pi target's first-class surface, so only one upstream factory is loaded."
       }
     ],
-    "notes": []
+    "notes": [
+      "extension/index.ts is loaded through the Studio policy adapter (src/adapters/designer-engine.ts): a HOME shim resolves its hardcoded ~/.omp paths, Studio materialises the managed-skills and validator paths it expects, and a proxied ExtensionAPI lets Studio decide whether to honour upstream prompt injection, the 12-skill gate, and session-stop enforcement."
+    ]
   },
   "pi-ux": {
     "package": "@bacnh85/pi-ux",
@@ -50,7 +46,7 @@
     ],
     "exclude": [],
     "notes": [
-      "extensions/index.js is vendored for its exported helpers only (resolveAuditCss, formatAuditResult). Studio never calls the upstream extension factory — Studio owns orchestration and mode state.",
+      "extensions/index.js is vendored for its exported helpers (resolveAuditCss, formatAuditResult) and its audit kernel; Studio never calls the upstream pi-ux extension factory, because Studio owns orchestration and mode state.",
       "extensions/package.json is vendored because it carries the \"type\": \"module\" marker the upstream extension needs; without it Node re-parses the file on every load."
     ]
   }

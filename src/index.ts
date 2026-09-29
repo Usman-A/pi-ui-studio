@@ -19,13 +19,21 @@ import {
 import {
   INITIAL_SESSION_STATE,
   SESSION_ENTRY_TYPE,
+  agentDir,
   loadConfig,
   replaySessionState,
   saveConfig,
   type SessionState,
   type StudioConfig,
 } from "./state.ts";
-import { doctorText, phaseBriefText, statusText } from "./report.ts";
+import { doctorText, designerStatusText, phaseBriefText, statusText } from "./report.ts";
+import {
+  DESIGNER_ENGINE_MODES,
+  activateDesignerEngine,
+  isDesignerEngineMode,
+  type DesignerEngineHandle,
+  type DesignerEngineMode,
+} from "./adapters/designer-engine.ts";
 import { MARKER_END, MARKER_START, normalizePrompt, orchestrationBlock, phaseTurn, studioOnText, usageText } from "./prompt.ts";
 import { registerStudioCheck, registerUxAudit, type StudioRuntime } from "./tools.ts";
 import { uxInstructions } from "./adapters/ux.ts";
@@ -48,6 +56,33 @@ function parseStudioCommand(rawArgs: string): { verb: string; argument: string }
 
 export default function uiStudio(pi: ExtensionAPI): void {
   let config: StudioConfig = loadConfig();
+  let designer: DesignerEngineHandle | null = null;
+
+  /**
+   * Activation is best-effort: a designer engine that cannot load must degrade
+   * Studio to content-plus-validators, never take the session down with it.
+   */
+  async function applyDesignerMode(ctx: StudioContext, mode: DesignerEngineMode): Promise<string> {
+    if (mode === "off") {
+      designer?.setMode("off");
+      return "Designer engine paused. Studio keeps DESIGN.md and the UX engine.";
+    }
+    if (designer) {
+      designer.setMode(mode);
+      return mode === "upstream"
+        ? "Designer engine: upstream mode — its prompt, 12-skill gate and session-stop checks are now enforced."
+        : "Designer engine: studio mode — commands, skills and validators live; Studio keeps the prompt and the gate.";
+    }
+    try {
+      designer = await activateDesignerEngine(pi, { agentDir: agentDir(), mode, cwd: ctx.cwd ?? process.cwd() });
+      return designer
+        ? `Designer engine active (${mode}): ${designer.commands.join(", ")}`
+        : "Designer engine could not start.";
+    } catch (error) {
+      ctx.ui?.notify?.(`Designer engine failed to load: ${(error as Error).message}`, "warning");
+      return "Designer engine unavailable; Studio continues without it.";
+    }
+  }
   let session: SessionState = { ...INITIAL_SESSION_STATE };
 
   const runtime = (): StudioRuntime => ({ config, session });
@@ -98,7 +133,21 @@ export default function uiStudio(pi: ExtensionAPI): void {
   const studioCommand: CommandDefinition = {
     description: "UI Studio: designer taste + UX rigor (explore | build | review | audit | mode | status | doctor | off)",
     aliases: ["ui-studio"],
-    getArgumentCompletions: completions(["explore", "build", "review", "audit", "mode", "status", "doctor", "on", "off", "help", ...PROFILE_IDS]),
+    getArgumentCompletions: completions([
+      "explore",
+      "build",
+      "review",
+      "audit",
+      "mode",
+      "designer",
+      "status",
+      "doctor",
+      "on",
+      "off",
+      "help",
+      ...PROFILE_IDS,
+      ...DESIGNER_ENGINE_MODES,
+    ]),
     handler: async (rawArgs, ctx) => {
       const { verb, argument } = parseStudioCommand(rawArgs);
       const cwd = ctx.cwd ?? process.cwd();
@@ -112,6 +161,7 @@ export default function uiStudio(pi: ExtensionAPI): void {
         config = { ...config, enabled: false };
         saveConfig(config);
         persistSession({ phase: "idle", audit: null, auditPrompts: 0 });
+        if (designer) await applyDesignerMode(ctx, "off");
         ctx.ui?.notify?.("UI Studio paused for this project. /studio turns it back on.", "info");
         syncStatus(ctx);
         ctx.ui?.setEditorText?.("");
@@ -121,6 +171,7 @@ export default function uiStudio(pi: ExtensionAPI): void {
       if (verb === "on" || verb === "") {
         config = { ...config, enabled: true };
         saveConfig(config);
+        if (designer && config.designerEngine !== "off") await applyDesignerMode(ctx, config.designerEngine);
         ctx.ui?.notify?.(studioOnText(config.profile), "info");
         syncStatus(ctx);
         ctx.ui?.setEditorText?.("");
@@ -140,6 +191,23 @@ export default function uiStudio(pi: ExtensionAPI): void {
         return;
       }
 
+
+      if (verb === "designer") {
+        if (argument === "" || argument === "status") {
+          ctx.ui?.notify?.(designerStatusText(config), "info");
+          return;
+        }
+        if (!isDesignerEngineMode(argument)) {
+          ctx.ui?.notify?.(`Unknown designer mode "${argument}". Use: ${DESIGNER_ENGINE_MODES.join(" | ")}.`, "warning");
+          return;
+        }
+        config = { ...config, designerEngine: argument, enabled: true };
+        saveConfig(config);
+        const applied = await applyDesignerMode(ctx, argument);
+        ctx.ui?.notify?.(applied, "info");
+        ctx.ui?.setEditorText?.("");
+        return;
+      }
       if (verb === "status") {
         showReport(ctx, statusText(config, session, cwd), `UI Studio · ${PROFILES[config.profile].label} · ${session.phase}`);
         return;
@@ -168,21 +236,6 @@ export default function uiStudio(pi: ExtensionAPI): void {
   };
 
   pi.registerCommand("studio", studioCommand);
-
-  // Power-user compatibility: upstream command names, Studio-owned state.
-  pi.registerCommand("designer", {
-    description: "Designer engine status (owned by UI Studio)",
-    aliases: ["design"],
-    handler: async (_rawArgs, ctx) => {
-      const profile = PROFILES[config.profile];
-      ctx.ui?.notify?.(
-        `Designer engine · ${profile.label} — exploration ${profile.designer.exploration}, ` +
-          `${profile.designer.visualReviews} visual reviews, ${profile.designer.repairLoops} repair loop(s), ` +
-          `references ${profile.designer.referenceStudy ? "on" : "off"}. Tune with /studio mode <profile>.`,
-        "info",
-      );
-    },
-  });
 
   pi.registerCommand("ux", {
     description: "UX engine level: off | lite | strict (owned by UI Studio)",
@@ -218,9 +271,14 @@ export default function uiStudio(pi: ExtensionAPI): void {
 
   pi.setLabel?.("UI Studio");
 
-  pi.on("session_start", (_event, ctx) => {
+  pi.on("session_start", async (_event, ctx) => {
     config = loadConfig();
     session = replaySessionState(ctx.sessionManager?.getBranch?.() ?? ctx.sessionManager?.getEntries?.() ?? []);
+    // Registering the engine's commands twice would duplicate them, so this
+    // runs once per process; later changes go through /studio designer.
+    if (config.enabled && config.designerEngine !== "off" && !designer) {
+      await applyDesignerMode(ctx, config.designerEngine);
+    }
     syncStatus(ctx);
   });
 

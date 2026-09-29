@@ -10,7 +10,7 @@ After choosing a palette and typography, write a `DESIGN.md` at the project root
 
 ## Studio: one design contract
 
-`DESIGN.md` at the repo root is the single shared contract for this project.
+`DESIGN.md` at the project root is the single shared contract for this project.
 
 - User instructions always win.
 - Product/functional requirements beat aesthetics.
@@ -19,10 +19,13 @@ After choosing a palette and typography, write a `DESIGN.md` at the project root
   independently redesigns the interface.
 - Accessibility failures are fixed, not aesthetically overridden.
 
-Keep the machine-readable token frontmatter at the top of the file
-(`colors`, `typography`, `rounded`, `spacing`, `components`) so
-`ux_audit`, `analyze-layout.mjs` and `npx @google/design.md lint` can read it,
-then keep the rationale sections below it.
+Write it in the canonical schema: token frontmatter first
+(`colors`, `typography`, `rounded`, `spacing`, `components`), then the
+rationale sections **Overview, Colors, Typography, Layout, Elevation,
+Components** in that order. Extra sections — Motion, Spacing, Radius, Grid,
+Image Style, Accessibility — are welcome; those six are the contract.
+`skill://studio-orchestrator` carries the same schema, and
+`studio_check` enforces it during `/studio audit`.
 
 ## When to write
 
@@ -34,12 +37,12 @@ then keep the rationale sections below it.
 ```markdown
 # DESIGN.md — Visual System
 
-## Brand
+## Overview
 - Name: [product name]
 - Voice: [3 adjectives from PRODUCT.md]
 - Anti-patterns: [what to avoid]
 
-## Color System
+## Colors
 Source row: [colors.csv row number + product type]
 [Exact hex values from the chosen palette row]
 - Primary: #hex — [usage: buttons, links, active states]
@@ -92,7 +95,7 @@ Section padding: [e.g., py-20 md:py-28]
 Component gap: [e.g., gap-6]
 Content max-width: [e.g., max-w-7xl]
 
-## Grid
+## Layout
 Columns: [e.g., 12-column grid]
 Breakpoints: sm 640, md 768, lg 1024, xl 1280, 2xl 1536
 Container: [e.g., max-w-[1400px] mx-auto px-6]
@@ -122,7 +125,7 @@ Container: [e.g., max-w-[1400px] mx-auto px-6]
 - Pinned/horizontal: [desktop behavior + mobile stacked/snap fallback]
 - Reduced motion: [exact fallback behavior]
 
-## Component Patterns
+## Components
 [How specific component types should look]
 - Hero: [layout approach — split, centered, asymmetric]
 - Feature cards: [layout — grid, bento, horizontal scroll]

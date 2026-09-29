@@ -2,13 +2,15 @@
  * Studio state: a small persisted config plus per-session orchestration state
  * replayed from session entries.
  *
- * Config survives across sessions (profile choice). Phase and audit gate live
- * in the session transcript so a resumed session resumes the same phase.
+ * Config survives across sessions (profile, UX override, designer engine mode).
+ * Phase and audit gate live in the session transcript so a resumed session
+ * resumes the same phase.
  */
 import fs from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
 
+import { isDesignerEngineMode, type DesignerEngineMode } from "./adapters/designer-engine.ts";
 import { DEFAULT_PROFILE, isProfileId, isUxLevel, type ProfileId, type SessionPhase, type UxLevel } from "./profiles.ts";
 
 export const SESSION_ENTRY_TYPE = "pi-ui-studio.state";
@@ -17,12 +19,15 @@ export interface StudioConfig {
   profile: ProfileId;
   /** Explicit UX level from `/ux <level>`; null means "follow the profile". */
   uxOverride: UxLevel | null;
+  /** How much of the vendored designer engine Studio hands control to. */
+  designerEngine: DesignerEngineMode;
   enabled: boolean;
 }
 
 export const DEFAULT_CONFIG: StudioConfig = {
   profile: DEFAULT_PROFILE,
   uxOverride: null,
+  designerEngine: "studio",
   enabled: true,
 };
 
@@ -55,6 +60,7 @@ export function loadConfig(file = configPath()): StudioConfig {
     return {
       profile: isProfileId(parsed.profile) ? parsed.profile : DEFAULT_PROFILE,
       uxOverride: isUxLevel(parsed.uxOverride) ? parsed.uxOverride : null,
+      designerEngine: isDesignerEngineMode(parsed.designerEngine) ? parsed.designerEngine : "studio",
       enabled: parsed.enabled !== false,
     };
   } catch {

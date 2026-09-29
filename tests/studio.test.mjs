@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import test from "node:test";
+import test, { after } from "node:test";
 
 import studio from "../src/index.ts";
 import { PROFILES, behaviorFor } from "../src/profiles.ts";
@@ -35,11 +35,23 @@ button{background:#7c3aed;color:#ffffff}
 const DESIGN_MD = `---
 colors:
   background: "#ffffff"
+  foreground: "#111111"
+  accent: "#0b5fff"
 typography:
   body: system-ui
+rounded:
+  control: 8px
+spacing:
+  base: 8px
+components:
+  - button
 ---
 
-# Design system
+# Fixture Design System
+
+## Overview
+
+Demo fixture for the Studio test suite.
 
 ## Colors
 
@@ -56,6 +68,18 @@ typography:
 - Body: 16px
 - Small: 13px
 
+## Layout
+
+- Grid: 12 columns
+
+## Elevation
+
+- Level 0: flat
+
+## Components
+
+- Button
+
 ## Motion
 
 - Hover: 150ms ease
@@ -70,13 +94,18 @@ function makeProject({ css = CLEAN_CSS } = {}) {
   return dir;
 }
 
-function harness(cwd, branch = []) {
-  const agentDir = fs.mkdtempSync(path.join(os.tmpdir(), "studio-agent-"));
-  process.env.PI_CODING_AGENT_DIR = agentDir;
+// One agent directory for the file: the vendored designer engine binds its
+// paths at first import, exactly as it does in a host process.
+const AGENT_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "studio-agent-"));
+const previousAgentDir = process.env.PI_CODING_AGENT_DIR;
 
+function harness(cwd, branch = []) {
+  const agentDir = AGENT_DIR;
+  process.env.PI_CODING_AGENT_DIR = agentDir;
+  fs.writeFileSync(path.join(agentDir, "pi-ui-studio.json"), `${JSON.stringify({ profile: "balanced", uxOverride: null, designerEngine: "studio", enabled: true }, null, 2)}\n`);
   const commands = new Map();
   const tools = new Map();
-  const events = new Map();
+  const handlers = new Map();
   const entries = branch;
   const messages = [];
   const notifications = [];
@@ -84,7 +113,11 @@ function harness(cwd, branch = []) {
   let editorText = "";
 
   const pi = {
-    on: (event, handler) => events.set(event, handler),
+    on: (event, handler) => {
+      const list = handlers.get(event) ?? [];
+      list.push(handler);
+      handlers.set(event, list);
+    },
     registerTool: (tool) => tools.set(tool.name, tool),
     registerCommand: (name, definition) => commands.set(name, definition),
     appendEntry: (customType, data) => entries.push({ type: "custom", customType, data }),
@@ -104,35 +137,51 @@ function harness(cwd, branch = []) {
     sessionManager: { getBranch: () => entries },
   };
 
+  /** Host semantics: every handler runs, the last non-undefined result wins. */
+  const dispatch = async (event, payload = {}) => {
+    let last;
+    for (const handler of handlers.get(event) ?? []) {
+      const result = await handler(payload, ctx);
+      if (result !== undefined) last = result;
+    }
+    return last;
+  };
+
   return {
     ctx,
     commands,
     tools,
-    events,
     entries,
     messages,
     notifications,
     statuses,
+    dispatch,
     readEditor: () => editorText,
     config: () => JSON.parse(fs.readFileSync(path.join(agentDir, "pi-ui-studio.json"), "utf8")),
     cleanup: () => {
-      fs.rmSync(agentDir, { recursive: true, force: true });
       fs.rmSync(cwd, { recursive: true, force: true });
     },
   };
 }
 
-const start = async (studioHarness) => studioHarness.events.get("session_start")({}, studioHarness.ctx);
-const run = async (studioHarness, args) => studioHarness.commands.get("studio").handler(args, studioHarness.ctx);
-const beforeStart = async (studioHarness) =>
-  studioHarness.events.get("before_agent_start")({ systemPrompt: "BASE PROMPT" }, studioHarness.ctx);
-const onStop = (studioHarness) => studioHarness.events.get("session_stop")({}, studioHarness.ctx);
+after(() => {
+  process.env.PI_CODING_AGENT_DIR = previousAgentDir;
+  fs.rmSync(AGENT_DIR, { recursive: true, force: true });
+});
+
+const start = (harness) => harness.dispatch("session_start");
+const run = (harness, args) => harness.commands.get("studio").handler(args, harness.ctx);
+const beforeStart = (harness) => harness.dispatch("before_agent_start", { systemPrompt: "BASE PROMPT" });
+const onStop = (harness) => harness.dispatch("session_stop");
+const toolCall = (harness, toolName) => harness.dispatch("tool_call", { toolName, input: {} });
 
 test("registers one command surface and both engine tools", async (t) => {
   const h = harness(makeProject());
   t.after(h.cleanup);
+  await start(h);
 
-  assert.deepEqual([...h.commands.keys()].sort(), ["designer", "studio", "ux"]);
+  // Studio's own surface plus the designer engine's commands, registered once.
+  assert.deepEqual([...h.commands.keys()].sort(), ["designer", "designer-doctor", "designer-reset", "studio", "ux"]);
   assert.deepEqual([...h.tools.keys()].sort(), ["studio_check", "ux_audit"]);
 
   for (const tool of h.tools.values()) {
@@ -231,24 +280,24 @@ test("the audit gate blocks until studio_check passes, and is bounded", async (t
   await start(h);
   await run(h, "audit");
 
-  const blocked = onStop(h);
+  const blocked = await onStop(h);
   assert.equal(blocked.continue, true);
   assert.match(blocked.additionalContext, /AUDIT GATE/);
   assert.match(blocked.additionalContext, /studio_check/);
 
   let continuations = 1;
   while (continuations < 6) {
-    const next = onStop(h);
+    const next = await onStop(h);
     if (!next) break;
     continuations += 1;
   }
   assert.equal(continuations, 3, "gate must stop asking after three continuations");
-  assert.equal(onStop(h), undefined, "gate stays open once the continuation budget is spent");
+  assert.equal(await onStop(h), undefined, "gate stays open once the continuation budget is spent");
 
   fs.writeFileSync(path.join(h.ctx.cwd, "styles.css"), CLEAN_CSS);
   const passed = await h.tools.get("studio_check").execute("call-3", { path: path.join(h.ctx.cwd, "styles.css") }, undefined, undefined, h.ctx);
   assert.equal(passed.details.passed, true, passed.content[0].text);
-  assert.equal(onStop(h), undefined);
+  assert.equal(await onStop(h), undefined);
 });
 
 test("audit requires a DESIGN.md contract only in the audit phase", async (t) => {
@@ -302,7 +351,7 @@ test("reports fall back to notifications when the host has no editor", async (t)
   assert.equal(h.readEditor(), "");
 });
 
-test("upstream command names stay available and route to Studio state", async (t) => {
+test("/ux stays Studio's, /designer is the live engine's toggle", async (t) => {
   const h = harness(makeProject());
   t.after(h.cleanup);
   await start(h);
@@ -314,11 +363,48 @@ test("upstream command names stay available and route to Studio state", async (t
   const prompt = await beforeStart(h);
   assert.match(String(prompt.systemPrompt.at(-1)), /Pi UX: strict/);
 
-  await h.commands.get("designer").handler("", h.ctx);
-  assert.match(h.notifications.at(-1).message, /Designer engine · Balanced/);
-
   await h.commands.get("ux").handler("nonsense", h.ctx);
   assert.equal(h.config().uxOverride, "strict");
+
+  // Studio activates the engine for the session cwd and globally; the engine's
+  // own /designer toggle writes its process cwd in the same file.
+  const stateFile = path.join(process.env.PI_CODING_AGENT_DIR, "designer-state.json");
+  const readState = () => JSON.parse(fs.readFileSync(stateFile, "utf8"));
+  assert.equal(readState()[h.ctx.cwd], true, "Studio activates the engine for this session");
+  assert.equal(readState()["*"], true, "and globally, so the host cwd cannot silently disable it");
+
+  await h.commands.get("designer").handler("", h.ctx);
+  assert.equal(readState()["*"], undefined, "the engine's own toggle clears the global key");
+  assert.equal(readState()[process.cwd()], true, "and owns its process cwd key");
+
+  await h.commands.get("designer").handler("", h.ctx);
+  assert.equal(readState()[process.cwd()], false, "a second toggle turns the engine off again");
+  await run(h, "designer studio");
+  assert.equal(readState()[h.ctx.cwd], true, "Studio re-arms the engine for the session");
+});
+
+test("/studio designer switches how much control the engine takes", async (t) => {
+  const h = harness(makeProject());
+  t.after(h.cleanup);
+  await start(h);
+
+  assert.equal(h.config().designerEngine, "studio");
+
+  await run(h, "designer upstream");
+  assert.equal(h.config().designerEngine, "upstream");
+  await h.dispatch("agent_start");
+  assert.equal((await toolCall(h, "write"))?.block, true, "upstream mode hands the tool gate to the engine");
+
+  await run(h, "designer studio");
+  assert.equal(h.config().designerEngine, "studio");
+  assert.equal(await toolCall(h, "write"), undefined, "studio mode keeps the gate for itself");
+
+  await run(h, "designer nonsense");
+  assert.equal(h.config().designerEngine, "studio");
+  assert.match(h.notifications.at(-1).message, /Unknown designer mode/);
+
+  await run(h, "designer status");
+  assert.match(h.notifications.at(-1).message, /Designer engine/);
 });
 
 test("session state survives a restart through branch replay", async (t) => {

@@ -1,21 +1,6 @@
 ---
-name: ux-design
-description: >
-  Anti-slop UI/UX design discipline for AI-generated interfaces. Enforces
-  industrial-design principles (Dieter Rams: honest, thorough to the last
-  detail, as little design as possible) so output is a defensible system, not
-  statistical-default slop (purple glow, shadow-as-texture, missing states) —
-  and equally not the correct-but-forgettable default (Inter, blue accent,
-  timid sizes). Covers the Constraint-First method: own the system via a
-  lintable DESIGN.md, write a 5-field brief, DERIVE A DIRECTION from the
-  subject (mood, type voice, color mood, signature element), generate inside
-  constraints, normalise, render-and-inspect with vision, pass a measurable
-  slop-audit gate. Works deterministically with text-only models
-  (DeepSeek-v4, GLM-5.2, Kimi K3); agy/Gemini/Claude is optional polish, never
-  the review gate. Use when designing or building any UI — web, mobile, or
-  desktop. Active via /ux lite|strict|off.
-argument-hint: ""
-license: MIT
+name: "ux-design"
+description: "Anti-slop UI/UX design discipline for AI-generated interfaces. Enforces industrial-design principles (Dieter Rams: honest, thorough to the last detail, as little design as possible) so output is a defensible system, not statistical-default slop (purple glow, shadow-as-texture, missing states) — and equally not the correct-but-forgettable default (Inter, blue accent, timid sizes). Covers the Constraint-First method: own the system via a lintable DESIGN.md, write a 5-field brief, DERIVE A DIRECTION from the subject (mood, type voice, color mood, signature element), generate inside constraints, normalise, render-and-inspect with vision, pass a measurable slop-audit gate. Works deterministically with text-only models (DeepSeek-v4, GLM-5.2, Kimi K3); agy/Gemini/Claude is optional polish, never the review gate. Use when designing or building any UI — web, mobile, or desktop. Active via /ux lite|strict|off."
 ---
 
 # UX Design Discipline — Direction + Anti-Slop, Industrial-Design Method
@@ -45,6 +30,21 @@ the taste. You produce both.
 - **Ambiguity = ask.** If a requirement is ambiguous, ASK. Do not guess aesthetics.
 
 ## The Constraint-First method
+
+
+### Studio: the same DESIGN.md, not a second one
+
+UI Studio consolidates both engines onto **one** repo-root `DESIGN.md`, with
+token frontmatter (`colors`, `typography`, `rounded`, `spacing`,
+`components`) followed by the rationale sections **Overview, Colors,
+Typography, Layout, Elevation, Components**.
+
+- Do not create a second contract, a `local://DESIGN.md`, or a per-model
+  variant. `skill://studio-orchestrator` holds the canonical schema.
+- Presets from `ux-presets` are still valid *starting points* — persist them
+  into that one file.
+- The audit gate checks this file, so a contract the tools cannot read is a
+  failed contract.
 
 ### Step 0 — Own the system via DESIGN.md (the model must NEVER invent this)
 

@@ -10,6 +10,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { inspectDesignSchema, type DesignSchemaReport } from "../contract.ts";
+
 export const DESIGNER_VENDOR_DIR = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
@@ -32,9 +34,7 @@ export interface ValidatorResult {
 export interface DesignContract {
   path: string;
   exists: boolean;
-  hexCount: number;
-  hasFrontmatter: boolean;
-  sections: string[];
+  schema: DesignSchemaReport | null;
 }
 
 function nodeBinary(): string {
@@ -44,17 +44,16 @@ function nodeBinary(): string {
 /** Run one vendored validator as a read-only subprocess. */
 export function runValidator(name: string, script: string, args: string[], cwd: string): ValidatorResult {
   if (!fs.existsSync(script)) {
-    return { name, ok: false, skipped: `validator missing: ${path.relative(DESIGNER_VENDOR_DIR, script)}`, output: "" };
+    return { name, ok: false, skipped: `validator missing: ${script}`, output: "" };
   }
   const run = spawnSync(nodeBinary(), [script, ...args], { cwd, encoding: "utf8", timeout: 120_000 });
   if (run.error) {
     return { name, ok: false, skipped: `could not run ${name}: ${run.error.message}`, output: "" };
   }
-  const output = `${run.stdout ?? ""}${run.stderr ?? ""}`.trim();
-  return { name, ok: run.status === 0, skipped: null, output };
+  return { name, ok: run.status === 0, skipped: null, output: `${run.stdout ?? ""}${run.stderr ?? ""}`.trim() };
 }
 
-/** Locate the DESIGN.md that governs a project directory. */
+/** Locate the DESIGN.md that governs a project directory and check its schema. */
 export function findDesignContract(cwd: string): DesignContract {
   let dir = path.resolve(cwd);
   let found: string | null = null;
@@ -69,16 +68,8 @@ export function findDesignContract(cwd: string): DesignContract {
     dir = parent;
   }
   const target = found ?? path.join(path.resolve(cwd), "DESIGN.md");
-  if (!found) return { path: target, exists: false, hexCount: 0, hasFrontmatter: false, sections: [] };
-
-  const text = fs.readFileSync(target, "utf8");
-  return {
-    path: target,
-    exists: true,
-    hexCount: (text.match(/#[0-9a-fA-F]{6}\b/g) ?? []).length,
-    hasFrontmatter: text.trimStart().startsWith("---"),
-    sections: [...text.matchAll(/^#{1,3}\s+(.+)$/gm)].map((match) => match[1]?.trim() ?? ""),
-  };
+  if (!found) return { path: target, exists: false, schema: null };
+  return { path: target, exists: true, schema: inspectDesignSchema(fs.readFileSync(target, "utf8")) };
 }
 
 /**
